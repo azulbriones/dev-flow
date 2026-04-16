@@ -1,0 +1,13 @@
+name: Workflow con dependencia faltante
+description: Este workflow referencia un step que no existe
+version: "1.0"
+
+steps:
+    - name: Step A
+      run: echo "A"
+      depends_on: []
+
+    - name: Step B
+      run: echo "B"
+      depends_on:
+        - Step Inexistente

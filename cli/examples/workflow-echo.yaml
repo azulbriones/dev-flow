@@ -1,0 +1,18 @@
+name: Test echo workflow
+description: Simple echo test
+version: "1.0"
+
+steps:
+    - name: Paso 1
+      run: echo "Hello from paso 1"
+      depends_on: []
+
+    - name: Paso 2
+      run: echo "Hello from paso 2"
+      depends_on:
+        - Paso 1
+
+    - name: Paso 3
+      run: echo "Hello from paso 3"
+      depends_on:
+        - Paso 2

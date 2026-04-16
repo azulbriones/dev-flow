@@ -11,13 +11,14 @@ Reglas de codigo para el proyecto DevFlow. Estas reglas se aplican a cada commit
 - **PascalCase** para clases: `class WorkflowRunner`
 - **UPPER_CASE** para constantes: `MAX_RETRIES = 3`
 - Maximo **88 caracteres** por linea (follow Black default)
+  - En type hints complejos, partir en múltiples lineas (cada linea < 88 chars)
 - **Dunder methods** (`__init__`, `__str__`) van al principio de la clase
 - Imports ordenados: stdlib -> third-party -> local
 
 ### Type Hints
 
 - **Siempre** usar type hints en funciones publicas
-- Usar `Union` en lugar de `|` para Python < 3.10
+- Usar `Union` o `|` indistintamente (Python 3.10+)
 - No usar `Any` excepto en funciones genericas
 
 ```python

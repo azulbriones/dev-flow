@@ -1,0 +1,19 @@
+name: Workflow con ciclo
+description: Este workflow tiene un ciclo para probar deteccion
+version: "1.0"
+
+steps:
+    - name: Step A
+      run: echo "A"
+      depends_on:
+        - Step C
+
+    - name: Step B
+      run: echo "B"
+      depends_on:
+        - Step A
+
+    - name: Step C
+      run: echo "C"
+      depends_on:
+        - Step B
