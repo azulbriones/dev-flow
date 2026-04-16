@@ -5,11 +5,11 @@
 [![Node](https://img.shields.io/badge/Node-22+-green.svg)](https://nodejs.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> Automatizá tus workflows de developer con CLI y visualízalos en un Dashboard en tiempo real.
+> Automatiza tus workflows de developer con CLI y visualizalos en un Dashboard en tiempo real.
 
 ## Descripción
 
-DevFlow es una herramienta para automatizar workflows de developers. Definí tus workflows en YAML, ejecutalos vía CLI y monitorealos en un dashboard en tiempo real.
+DevFlow es una herramienta para automatizar workflows de developers. Define tus workflows en YAML, ejecutalos via CLI y monitorealos en un dashboard en tiempo real.
 
 ## Stack Tecnológico
 
