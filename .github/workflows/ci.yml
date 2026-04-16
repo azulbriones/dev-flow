@@ -2,12 +2,13 @@ name: CI
 
 on:
     push:
-        branches: [main]
+        branches: [main, develop]
     pull_request:
-        branches: [main]
+        branches: [main, develop]
 
 jobs:
-    test:
+    # CLI - Python linting
+    cli-lint:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
@@ -15,38 +16,68 @@ jobs:
             - name: Set up Python
               uses: actions/setup-python@v5
               with:
-                  python-version: "3.11"
+                  python-version: '3.11'
 
-            - name: Install Python dependencies
+            - name: Install ruff
+              run: pip install ruff
+
+            - name: Run ruff check
+              run: ruff check cli/src/
+
+            - name: Run ruff format check
+              run: ruff format --check cli/src/
+
+    # Backend tests
+    backend-test:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Set up Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: '3.11'
+
+            - name: Cache pip
+              uses: actions/cache@v4
+              with:
+                  path: backend/venv
+                  key: ${{ runner.os }}-pip-backend-${{ hashFiles('backend/requirements.txt') }}
+
+            - name: Install dependencies
               working-directory: backend
               run: |
                   python -m venv venv
                   source venv/bin/activate
                   pip install -r requirements.txt
 
-            - name: Run Backend Tests
+            - name: Run tests
               working-directory: backend
               run: |
                   source venv/bin/activate
                   pytest
 
+    # Frontend build
+    frontend-build:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                  version: '9'
+
             - name: Setup Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: "22"
+                  node-version: '22'
+                  cache: 'pnpm'
 
-            - name: Enable pnpm via corepack
-              run: corepack enable pnpm
-
-            - name: Install Frontend dependencies
+            - name: Install dependencies
               working-directory: frontend
               run: pnpm install
 
-            - name: Build Frontend
+            - name: Build
               working-directory: frontend
               run: pnpm build
-
-            # Tests will be added later
-            # - name: Run Frontend Tests
-            #   working-directory: frontend
-            #   run: pnpm test
