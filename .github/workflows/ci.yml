@@ -37,6 +37,9 @@ jobs:
                   cache: pnpm
                   cache-dependency-path: frontend/pnpm-lock.yaml
 
+            - name: Install pnpm
+              run: npm install -g pnpm
+
             - name: Install Frontend dependencies
               working-directory: frontend
               run: pnpm install
