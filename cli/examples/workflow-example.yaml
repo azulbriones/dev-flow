@@ -1,0 +1,13 @@
+name: Mi primer workflow
+description: Un ejemplo basico de workflow
+version: "1.0"
+
+steps:
+    - name: Instalar dependencias
+      run: npm install
+
+    - name: Correr tests
+      run: npm test
+
+    - name: Build
+      run: npm run build
