@@ -3,7 +3,7 @@ name = "devflow"
 version = "0.1.0"
 description = "CLI para automatizar workflows de developer"
 requires-python = ">=3.11"
-dependencies = ["click>=8.1.7"]
+dependencies = ["click>=8.3.2"]
 [project.scripts]
 devflow = "devflow.__main__:cli"
 [build-system]
