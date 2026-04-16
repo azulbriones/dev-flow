@@ -9,9 +9,8 @@ env/
 *.egg-info/
 dist/
 build/
-.eggs/
-.pytest_cache/
 .ruff_cache/
+.pytest_cache/
 
 # Node
 node_modules/
@@ -34,9 +33,12 @@ dist-ssr/
 .env
 .env.local
 
-# Docker
-*.db
+# Git
+.git/
+.gitignore
 
 # Misc
 *.log
 .gga
+*.yaml
+!examples/*.yaml

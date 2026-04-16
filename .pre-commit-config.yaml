@@ -12,7 +12,7 @@ repos:
             pass_filenames: false
             always_run: true
 
-    # Python hooks
+    # Hooks generales (Limpieza básica)
     - repo: https://github.com/pre-commit/pre-commit-hooks
       rev: v5.0.0
       hooks:
@@ -21,15 +21,17 @@ repos:
           - id: check-yaml
           - id: check-added-large-files
 
-    - repo: https://github.com/psf/black
-      rev: stable
+    # Python: Formateo + Orden de Imports + Linting (Todo en uno)
+    - repo: https://github.com/astral-sh/ruff-pre-commit
+      rev: v0.3.0
       hooks:
-          - id: black
-            language_version: python3.11
+          - id: ruff
+            args: [--fix] # Ordena imports y arregla problemas simples
+          - id: ruff-format # Reemplaza a Black (usa el estándar de 88 chars)
 
-    # JavaScript/TypeScript hooks
+    # Frontend: Estética y Lógica
     - repo: https://github.com/prettier/prettier
-      rev: v3.5.0
+      rev: v3.2.5
       hooks:
           - id: prettier
             files: \.(js|jsx|ts|tsx|json|css|md|yaml|yml)$
