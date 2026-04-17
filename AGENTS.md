@@ -65,7 +65,8 @@ def process_workflow(workflow: dict) -> bool:
 
 ### Estilo de Codigo
 
-- Usar **4 espacios** para indentacion
+- Usar **2 espacios** para indentacion (estándar Prettier)
+- **4 espacios** para Python/Backend
 - **camelCase** para variables y funciones: `getWorkflow()`, `workflowData`
 - **PascalCase** para componentes y clases: `WorkflowCard`, `DashboardView`
 - **SCREAMING_SNAKE_CASE** para constantes: `MAX_RETRIES`
@@ -110,9 +111,10 @@ export const WorkflowCard = ({ name, status, onClick }: WorkflowCardProps) => {
 
 ### Estilos
 
-- **SCSS Modules** para estilos especificos de componente
+- **CSS moderno** con nesting (2 espacios) o SCSS si necesitás mixins/functions
+- **SCSS Modules** para estilos especificos de componente (opcional)
 - Classes en kebab-case: `.workflow-card`
-- Variables CSS para colores y spacing
+- Variables CSS (`--color-primary`) para colores y spacing
 - No usar estilos inline excepto para dynamic values
 
 ---
