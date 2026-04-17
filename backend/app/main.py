@@ -3,6 +3,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from .database import Base, engine
+from .routes import execute_router, workflows_router
+
+# Create tables
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="DevFlow API",
@@ -10,7 +15,7 @@ app = FastAPI(
     version="0.1.0",
 )
 
-# CORS: permitir acceso desde frontend local (en producción, usar dominio específico)
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://localhost:3000"],
@@ -19,22 +24,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include routers
+app.include_router(workflows_router)
+app.include_router(execute_router)
+
 
 @app.get("/")
 def root() -> dict:
-    """Health check endpoint.
-
-    Returns:
-        dict: Welcome message.
-    """
+    """Health check endpoint."""
     return {"message": "DevFlow API is running!"}
 
 
 @app.get("/health")
 def health() -> dict:
-    """Service health check endpoint.
-
-    Returns:
-        dict: Service status.
-    """
+    """Service health check endpoint."""
     return {"status": "healthy"}
