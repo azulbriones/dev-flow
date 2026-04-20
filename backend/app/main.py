@@ -25,8 +25,8 @@ app.add_middleware(
 )
 
 # Include routers
-app.include_router(workflows_router)
-app.include_router(execute_router)
+app.include_router(workflows_router, prefix="/api")
+app.include_router(execute_router, prefix="/api")
 
 
 @app.get("/")
