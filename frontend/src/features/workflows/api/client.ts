@@ -76,7 +76,8 @@ export async function createExecution(
 export function connectStream(
   executionId: number,
   onMessage: (data: string) => void,
-  onError?: () => void
+  onError?: () => void,
+  onClose?: () => void
 ): WebSocket {
   const ws = new WebSocket(`${WS_URL}/execute/${executionId}/stream`);
 
@@ -86,6 +87,10 @@ export function connectStream(
 
   ws.onerror = () => {
     onError?.();
+  };
+
+  ws.onclose = () => {
+    onClose?.();
   };
 
   return ws;
