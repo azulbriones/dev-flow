@@ -87,7 +87,7 @@ def validate(yaml_path: str) -> None:
     try:
         workflow = parse_workflow(yaml_path)
 
-        console.print(f"[bold green]✅ YAML válido[/bold green]")
+        console.print("[bold green]✅ YAML válido[/bold green]")
         console.print(f"\n[bold]Workflow:[/bold] {workflow.name}")
         console.print(f"[bold]Versión:[/bold] {workflow.version}")
         console.print(f"[bold]Pasos:[/bold] {len(workflow.steps)}")
@@ -154,7 +154,7 @@ def _monitor_execution(execution_id: int) -> None:
     except KeyboardInterrupt:
         console.print("\n[bold yellow]⏹ Monitoreo interrumpido[/bold yellow]")
     except (OSError, asyncio.CancelledError):
-        console.print(f"[dim]WebSocket no disponible, usando polling...[/dim]")
+        console.print("[dim]WebSocket no disponible, usando polling...[/dim]")
         _poll_execution(execution_id)
 
 
