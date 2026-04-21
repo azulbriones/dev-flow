@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.wsgi import WSGIMiddleware
 
 from .database import Base, engine
 from .routes.v1 import get_v1_router
@@ -41,11 +42,11 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS
+# CORS - Development mode allows all origins for WebSocket
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=get_cors_origins(),
-    allow_credentials=True,
+    allow_origins=["*"],  # Allow all for development
+    allow_credentials=False,  # Cannot use credentials with wildcard origin
     allow_methods=["*"],
     allow_headers=["*"],
 )

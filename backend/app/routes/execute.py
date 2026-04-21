@@ -1,5 +1,6 @@
 """Execution routes - Execute and WebSocket endpoints."""
 
+import logging
 from typing import List
 
 from fastapi import (
@@ -21,6 +22,8 @@ from ..services.execution_service import (
 from ..services.execution_service import execute_workflow
 from ..services.workflow_service import get_workflow
 from ..core.redis import subscribe_output
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="", tags=["execute"])
 
@@ -127,7 +130,14 @@ async def websocket_execute(
         execution_id: Execution ID.
         db: Database session (initial check only).
     """
-    await websocket.accept()
+    logger.info(f"WebSocket connection attempt for execution {execution_id}")
+
+    try:
+        await websocket.accept()
+        logger.info(f"WebSocket accepted for execution {execution_id}")
+    except Exception as e:
+        logger.error(f"Failed to accept WebSocket: {e}")
+        return
 
     # Verify execution exists
     execution = get_execution(db, execution_id)
@@ -135,6 +145,8 @@ async def websocket_execute(
         await websocket.send_text("ERROR: Execution not found")
         await websocket.close()
         return
+
+    logger.info(f"Execution {execution_id} status: {execution.status}")
 
     # If execution already completed, send stored output
     if execution.status in ("completed", "failed") and execution.output:
@@ -152,6 +164,24 @@ async def websocket_execute(
                 break
 
     except WebSocketDisconnect:
-        pass  # Client disconnected
+        logger.info(f"WebSocket disconnected for execution {execution_id}")
     finally:
         await websocket.close()
+
+
+# ============================================================================
+# WebSocket - DEPRECATED (Legacy Queue-based Pattern)
+# ============================================================================
+# NOTE: This endpoint is deprecated. Use /execute/{execution_id}/stream instead.
+
+
+@router.websocket("/legacy/{execution_id}/stream")
+async def websocket_execute_legacy(
+    websocket: WebSocket, execution_id: int, db: Session = Depends(get_db)
+) -> None:
+    """DEPRECATED - Legacy WebSocket endpoint.
+
+    This endpoint used the queue-based pattern. It is kept for reference
+    but should not be used in production.
+    """
+    await websocket.close()
