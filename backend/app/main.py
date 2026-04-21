@@ -1,18 +1,19 @@
 """Main FastAPI application for DevFlow."""
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from .database import Base, engine
-from .routes import execute_router, workflows_router
+from .routes.v1 import get_v1_router
+
 
 # Create tables
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
-    title="DevFlow API",
+    title="DevFlow API v1",
     description="API for DevFlow workflow automation",
-    version="0.1.0",
+    version="1.0.0",
 )
 
 # CORS
@@ -24,9 +25,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
-app.include_router(workflows_router, prefix="/api")
-app.include_router(execute_router, prefix="/api")
+
+# Include v1 router
+v1_router = get_v1_router()
+app.include_router(v1_router, prefix="/api/v1")
+
+
+@app.middleware("http")
+async def add_version_header(request: Request, call_next):
+    """Add API version header to all v1 responses."""
+    response = await call_next(request)
+    if request.url.path.startswith("/api/v1"):
+        response.headers["API-Version"] = "v1"
+    return response
 
 
 @app.get("/")
@@ -39,3 +50,13 @@ def root() -> dict:
 def health() -> dict:
     """Service health check endpoint."""
     return {"status": "healthy"}
+
+
+# Backward compatibility - deprecated /api routes
+@app.get("/api/{path:path}")
+async def deprecated_api(path: str) -> dict:
+    """Deprecated API endpoint - redirect to v1."""
+    return {
+        "error": f"Use /api/v1/{path} instead",
+        "deprecated": True,
+    }
