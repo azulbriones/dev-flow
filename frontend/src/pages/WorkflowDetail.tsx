@@ -32,7 +32,7 @@ export const WorkflowDetail = () => {
     setExecutionId(execution.id);
   };
 
-  const { output, isConnected } = useExecutionStream({
+  const { output, isConnected, isReconnecting } = useExecutionStream({
     executionId: executionId,
     enabled: !!executionId,
   });
@@ -67,7 +67,11 @@ export const WorkflowDetail = () => {
       <Button onClick={handleExecute}>Ejecutar</Button>
 
       {executionId && (
-        <ExecutionStream output={output} isConnected={isConnected} />
+        <ExecutionStream
+          output={output}
+          isConnected={isConnected}
+          isReconnecting={isReconnecting}
+        />
       )}
 
       <div className="border-t pt-6">

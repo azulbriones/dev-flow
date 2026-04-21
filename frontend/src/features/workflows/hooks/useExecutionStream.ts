@@ -89,6 +89,12 @@ export function useExecutionStream({
   }, []);
 
   const attemptReconnect = (): void => {
+    // Don't reconnect if executionId is invalid
+    if (!executionId || executionId <= 0) {
+      setIsReconnecting(false);
+      return;
+    }
+
     if (reconnectAttemptsRef.current >= reconnectConfig.maxRetries) {
       setIsReconnecting(false);
       return;
@@ -102,12 +108,20 @@ export function useExecutionStream({
     reconnectAttemptsRef.current += 1;
 
     reconnectTimeoutRef.current = window.setTimeout(() => {
-      connect();
-      setIsReconnecting(false);
+      // Check again before reconnecting
+      if (executionId && executionId > 0) {
+        connect();
+        setIsReconnecting(false);
+      }
     }, waitTime);
   };
 
   const connect = (): void => {
+    // Don't connect if executionId is invalid
+    if (!executionId || executionId <= 0) {
+      return;
+    }
+
     const ws = connectStream(executionId, onMessage, onError, onClose);
     wsRef.current = ws;
     setIsConnected(true);
@@ -115,7 +129,16 @@ export function useExecutionStream({
 
   useEffect(() => {
     // Skip if no valid execution ID
-    if (!enabled || !executionId || executionId <= 0) return;
+    if (!enabled || !executionId || executionId <= 0) {
+      // Cleanup if we have an open connection
+      if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
+      }
+      setIsConnected(false);
+      setIsReconnecting(false);
+      return;
+    }
 
     reconnectAttemptsRef.current = 0;
     bufferRef.current = [];
