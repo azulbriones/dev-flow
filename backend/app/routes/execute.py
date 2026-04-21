@@ -1,6 +1,5 @@
 """Execution routes - Execute and WebSocket endpoints."""
 
-import asyncio
 from typing import List
 
 from fastapi import (
@@ -16,12 +15,12 @@ from sqlalchemy.orm import Session
 from ..database import get_db
 from ..schemas.execution import ExecutionCreate, ExecutionResponse
 from ..services.execution_service import (
-    execution_queues,
     get_execution,
     list_executions,
 )
 from ..services.execution_service import execute_workflow
 from ..services.workflow_service import get_workflow
+from ..core.redis import subscribe_output
 
 router = APIRouter(prefix="", tags=["execute"])
 
@@ -108,20 +107,20 @@ def get_execution_by_id(
 
 
 # ============================================================================
-# WebSocket - Direct Push Pattern (Queue-based)
+# WebSocket - Redis Pub/Sub Pattern
 # ============================================================================
 
 
 @router.websocket("/execute/{execution_id}/stream")
 async def websocket_execute(
     websocket: WebSocket, execution_id: int, db: Session = Depends(get_db)
-):
-    """WebSocket endpoint for streaming execution output.
+) -> None:
+    """WebSocket endpoint for streaming execution output via Redis Pub/Sub.
 
-    Uses Queue-based direct push pattern:
-    - Service pushes output lines to a thread-safe Queue
-    - Route polls from the Queue (not DB!)
-    - No DB polling, no async callback issues
+    Uses Redis Pub/Sub pattern:
+    - Celery worker publishes output to Redis channel
+    - WebSocket subscribes to Redis channel
+    - Real-time streaming without polling
 
     Args:
         websocket: WebSocket connection.
@@ -137,36 +136,22 @@ async def websocket_execute(
         await websocket.close()
         return
 
-    # Get queue for this execution
-    queue = execution_queues.get(execution_id)
-    if not queue:
-        # Execution might already be done, send stored output
-        if execution.output:
-            await websocket.send_text(execution.output)
+    # If execution already completed, send stored output
+    if execution.status in ("completed", "failed") and execution.output:
+        await websocket.send_text(execution.output)
         await websocket.close()
         return
 
     try:
-        # Poll queue until execution completes
-        while execution.status == "running":
-            # Poll queue (not DB!) - very fast
-            while not queue.empty():
-                line = queue.get()
-                await websocket.send_text(line)
-            await asyncio.sleep(0.1)
-
-        # Send remaining output in queue
-        while not queue.empty():
-            line = queue.get()
+        # Subscribe to Redis channel for this execution
+        async for line in subscribe_output(execution_id):
             await websocket.send_text(line)
 
-        # Send final status
-        await websocket.send_text(f"\n=== Execution {execution.status} ===")
+            # Check if execution completed (by parsing the final message)
+            if line.startswith("=== Execution"):
+                break
 
     except WebSocketDisconnect:
         pass  # Client disconnected
     finally:
-        # Clean up queue reference
-        if execution_id in execution_queues:
-            del execution_queues[execution_id]
         await websocket.close()

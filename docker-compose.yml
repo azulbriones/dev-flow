@@ -13,13 +13,15 @@ services:
       timeout: 3s
       retries: 3
 
-# Backend: FastAPI
+  # Backend: FastAPI
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: backend/Dockerfile
     ports:
       - "8000:8000"
+    environment:
+      - REDIS_URL=redis://redis:6379/0
     env_file:
       - .env
     depends_on:
@@ -27,7 +29,23 @@ services:
         condition: service_healthy
     volumes:
       - ./backend:/app
+      - ./cli/src:/app/cli_src
     command: uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+  # Celery Worker: Execute workflows async
+  celery-worker:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - ./cli/src:/app/cli_src
+    command: celery -A app.tasks.celery_app worker --loglevel=info --concurrency=2
 
   # Frontend: React + Vite
   frontend:

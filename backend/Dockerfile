@@ -2,15 +2,18 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Instalar dependencias primero (cache de Docker)
-COPY requirements.txt .
+# Copiar requirements y dependencias
+COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copiar CLI como módulo (para ejecución de workflows)
-COPY cli/src/devflow /app/devflow
-
 # Copiar código backend
-COPY . .
+COPY backend/ .
+
+# Copiar CLI (necesario para ejecutar workflows)
+COPY cli/src /app/cli_src
+
+# Instalar CLI como módulo editable
+RUN pip install -e /app/cli_src
 
 EXPOSE 8000
 

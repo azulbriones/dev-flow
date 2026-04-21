@@ -102,8 +102,3 @@ async def subscribe_output(execution_id: int) -> AsyncIterator[str]:
         await RedisClient.unsubscribe(pubsub)
 
 
-async def cleanup_channel(execution_id: int) -> None:
-    """Cleanup execution channel (optional - Redis auto-cleanups)."""
-    # Redis automatically cleans up channels when last subscriber unsubscribes
-    # This is kept for explicit cleanup if needed
-    pass
