@@ -41,7 +41,9 @@ def _run_remote(yaml_path: str, watch: bool) -> None:
         result = create_execution(yaml_path)
 
         exec_id = result["id"]
-        console.print(f"[bold green]✅ Ejecución creada![/bold green] ID: [yellow]{exec_id}[/yellow]")
+        console.print(
+            f"[bold green]✅ Ejecución creada![/bold green] ID: [yellow]{exec_id}[/yellow]"
+        )
 
         if watch:
             _monitor_execution(exec_id)
@@ -146,6 +148,7 @@ def status(execution_id: int) -> None:
 
 def _monitor_execution(execution_id: int) -> None:
     """Monitorea ejecución via WebSocket."""
+
     def on_message(msg: str) -> None:
         console.print(msg)
 
