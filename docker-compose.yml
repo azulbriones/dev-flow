@@ -13,17 +13,15 @@ services:
       timeout: 3s
       retries: 3
 
-  # Backend: FastAPI
+# Backend: FastAPI
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
-    environment:
-      - REDIS_URL=redis://redis:6379/0
-      - DATABASE_URL=sqlite:///./devflow.db
-      - CORS_ORIGINS=*
+    env_file:
+      - .env
     depends_on:
       redis:
         condition: service_healthy
