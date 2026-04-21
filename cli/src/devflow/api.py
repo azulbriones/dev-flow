@@ -46,7 +46,7 @@ def create_execution(yaml_path: str) -> dict[str, Any]:
         raise ValueError(f"YAML inválido: {e}")
 
     response = httpx.post(
-        f"{api_url}/api/execute",
+        f"{api_url}/api/v1/execute",
         json={"yaml": yaml_content},
         timeout=30.0,
     )
@@ -62,7 +62,7 @@ def create_execution(yaml_path: str) -> dict[str, Any]:
 def get_execution(execution_id: int) -> dict[str, Any]:
     """Get execution status."""
     api_url = get_api_url()
-    response = httpx.get(f"{api_url}/api/executions/{execution_id}", timeout=10.0)
+    response = httpx.get(f"{api_url}/api/v1/executions/{execution_id}", timeout=10.0)
     return response.json()
 
 
@@ -71,7 +71,7 @@ async def stream_execution(
     on_message: Callable[[str], None],
 ) -> None:
     """Connect to WebSocket and stream execution output."""
-    ws_url = f"{get_ws_url()}/api/execute/{execution_id}/stream"
+    ws_url = f"{get_ws_url()}/api/v1/execute/{execution_id}/stream"
     async with websockets.connect(ws_url) as ws:
         async for message in ws:
             on_message(message)
