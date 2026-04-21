@@ -1,7 +1,7 @@
 """API v1 routes - Versioned API endpoints."""
 
-from .execute import execute_router
-from .workflows import workflows_router
+from .execute import router as execute_router
+from .workflows import router as workflows_router
 
 
 def get_v1_router():
