@@ -1,10 +1,12 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 
 import { connectStream } from '../api/client';
 
 interface UseExecutionStreamOptions {
   executionId: number;
   enabled?: boolean;
+  bufferSize?: number;
+  flushInterval?: number;
 }
 
 interface ReconnectConfig {
@@ -21,6 +23,8 @@ function exponentialBackoff(attempt: number, config: ReconnectConfig): number {
 export function useExecutionStream({
   executionId,
   enabled = true,
+  bufferSize = 100,
+  flushInterval = 50,
 }: UseExecutionStreamOptions): {
   output: string;
   isConnected: boolean;
@@ -33,31 +37,56 @@ export function useExecutionStream({
   const reconnectAttemptsRef = useRef(0);
   const reconnectTimeoutRef = useRef<number | null>(null);
 
+  // Buffer for batching updates
+  const bufferRef = useRef<string[]>([]);
+  const flushTimeoutRef = useRef<number | null>(null);
+
   const reconnectConfig: ReconnectConfig = {
     maxRetries: 5,
     baseDelay: 1000,
     maxDelay: 30000,
   };
 
-  const connect = (): void => {
-    const onMessage = (data: string): void => {
-      setOutput((prev) => prev + data);
-    };
+  const flushBuffer = useCallback((): void => {
+    if (bufferRef.current.length === 0) return;
 
-    const onError = (): void => {
-      setIsConnected(false);
-      attemptReconnect();
-    };
+    const chunk = bufferRef.current.join('');
+    bufferRef.current = [];
 
-    const onClose = (): void => {
-      setIsConnected(false);
-      attemptReconnect();
-    };
+    setOutput((prev) => prev + chunk);
+  }, []);
 
-    const ws = connectStream(executionId, onMessage, onError, onClose);
-    wsRef.current = ws;
-    setIsConnected(true);
-  };
+  const scheduleFlush = useCallback((): void => {
+    if (flushTimeoutRef.current) return;
+
+    flushTimeoutRef.current = window.setTimeout(() => {
+      flushTimeoutRef.current = null;
+      flushBuffer();
+    }, flushInterval);
+  }, [flushInterval, flushBuffer]);
+
+  const onMessage = useCallback(
+    (data: string): void => {
+      bufferRef.current.push(data);
+
+      if (bufferRef.current.length >= bufferSize) {
+        flushBuffer();
+      } else {
+        scheduleFlush();
+      }
+    },
+    [bufferSize, flushBuffer, scheduleFlush]
+  );
+
+  const onError = useCallback((): void => {
+    setIsConnected(false);
+    attemptReconnect();
+  }, []);
+
+  const onClose = useCallback((): void => {
+    setIsConnected(false);
+    attemptReconnect();
+  }, []);
 
   const attemptReconnect = (): void => {
     if (reconnectAttemptsRef.current >= reconnectConfig.maxRetries) {
@@ -78,15 +107,25 @@ export function useExecutionStream({
     }, waitTime);
   };
 
+  const connect = (): void => {
+    const ws = connectStream(executionId, onMessage, onError, onClose);
+    wsRef.current = ws;
+    setIsConnected(true);
+  };
+
   useEffect(() => {
     if (!enabled || !executionId) return;
 
     reconnectAttemptsRef.current = 0;
+    bufferRef.current = [];
     connect();
 
     return (): void => {
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
+      }
+      if (flushTimeoutRef.current) {
+        clearTimeout(flushTimeoutRef.current);
       }
       if (wsRef.current) {
         wsRef.current.close();
