@@ -114,7 +114,8 @@ export function useExecutionStream({
   };
 
   useEffect(() => {
-    if (!enabled || !executionId) return;
+    // Skip if no valid execution ID
+    if (!enabled || !executionId || executionId <= 0) return;
 
     reconnectAttemptsRef.current = 0;
     bufferRef.current = [];

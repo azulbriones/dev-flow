@@ -33,7 +33,7 @@ export const WorkflowDetail = () => {
   };
 
   const { output, isConnected } = useExecutionStream({
-    executionId: executionId || 0,
+    executionId: executionId,
     enabled: !!executionId,
   });
 
