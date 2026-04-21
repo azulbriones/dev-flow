@@ -12,12 +12,14 @@ from .core.redis import RedisClient
 
 
 # Default CORS origins for local development
-DEFAULT_ORIGINS = "http://localhost:5173,http://localhost:3000"  # noqa: E501
+DEFAULT_ORIGINS = "*"  # noqa: E501
 
 
 def get_cors_origins() -> list[str]:
     """Get CORS origins from environment."""
     origins = os.getenv("CORS_ORIGINS", DEFAULT_ORIGINS)
+    if origins == "*":
+        return ["*"]
     return [o.strip() for o in origins.split(",") if o.strip()]
 
 
