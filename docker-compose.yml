@@ -23,6 +23,7 @@ services:
     environment:
       - REDIS_URL=redis://redis:6379/0
       - DATABASE_URL=sqlite:///./devflow.db
+      - CORS_ORIGINS=http://localhost:5173,http://localhost:3000
     depends_on:
       redis:
         condition: service_healthy

@@ -1,25 +1,48 @@
 """Main FastAPI application for DevFlow."""
 
+import os
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from .database import Base, engine
 from .routes.v1 import get_v1_router
+from .core.redis import RedisClient
 
 
-# Create tables
-Base.metadata.create_all(bind=engine)
+# Default CORS origins for local development
+DEFAULT_ORIGINS = "http://localhost:5173,http://localhost:3000"  # noqa: E501
+
+
+def get_cors_origins() -> list[str]:
+    """Get CORS origins from environment."""
+    origins = os.getenv("CORS_ORIGINS", DEFAULT_ORIGINS)
+    return [o.strip() for o in origins.split(",") if o.strip()]
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Manage application lifecycle."""
+    # Startup: create tables and Redis client
+    Base.metadata.create_all(bind=engine)
+    await RedisClient.get_client()
+    yield
+    # Shutdown: close Redis client
+    await RedisClient.close()
+
 
 app = FastAPI(
     title="DevFlow API v1",
     description="API for DevFlow workflow automation",
     version="1.0.0",
+    lifespan=lifespan,
 )
 
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=get_cors_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
