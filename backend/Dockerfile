@@ -6,7 +6,10 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copiar código
+# Copiar CLI como módulo (para ejecución de workflows)
+COPY cli/src/devflow /app/devflow
+
+# Copiar código backend
 COPY . .
 
 EXPOSE 8000
