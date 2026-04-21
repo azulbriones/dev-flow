@@ -12,7 +12,7 @@ def get_v1_router():
     """
     from fastapi import APIRouter
 
-    v1_router = APIRouter(prefix="/v1", tags=["v1"])
+    v1_router = APIRouter(tags=["v1"])
 
     v1_router.include_router(workflows_router)
     v1_router.include_router(execute_router)
