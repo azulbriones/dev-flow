@@ -1,0 +1,41 @@
+/* ============================================================================
+   Workflow Detail Layout - 2 Column Grid
+   ============================================================================ */
+
+.workflow-detail-layout {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: var(--space-4);
+  height: calc(100vh - 200px);
+  min-height: 500px;
+
+  /* Left Column */
+  &__left {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    overflow-y: auto;
+    padding-right: var(--space-2);
+  }
+
+  /* Right Column */
+  &__right {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Responsive - Tablet Stack */
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+    height: auto;
+
+    &__left {
+      overflow: visible;
+    }
+
+    &__right {
+      height: 400px;
+    }
+  }
+}

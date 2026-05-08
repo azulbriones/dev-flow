@@ -1,0 +1,133 @@
+/* ============================================================================
+   Workflow Detail Page
+   ============================================================================ */
+
+.workflow-detail-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-6);
+
+  /* Header */
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-6);
+  }
+
+  &__back {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    transition: color var(--duration-hover);
+
+    &:hover {
+      color: var(--accent);
+    }
+  }
+
+  &__title {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .workflow-detail-page__subtitle {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    p {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      margin: 0;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    gap: var(--space-3);
+  }
+
+  /* Executions History */
+  &__executions {
+    border-top: 1px solid var(--border);
+    padding-top: var(--space-6);
+
+    &-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-3);
+      margin-bottom: var(--space-4);
+    }
+
+    h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    &-count {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      padding: 0.25rem 0.5rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-full);
+      background-color: var(--bg-elevated);
+    }
+
+    ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+
+    li {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--space-4);
+      background-color: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      font-size: 0.875rem;
+
+      span:first-child {
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+      }
+
+      .led {
+        margin-left: auto;
+      }
+    }
+
+  }
+
+  &__execution-id,
+  &__execution-status,
+  &__execution-time {
+    white-space: nowrap;
+  }
+
+  &__execution-status {
+    font-weight: 600;
+    text-transform: capitalize;
+  }
+
+  &__execution-time {
+    margin-left: auto;
+    font-size: 0.8125rem;
+  }
+}

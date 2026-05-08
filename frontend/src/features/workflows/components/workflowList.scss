@@ -1,0 +1,101 @@
+/* Workflow List Styles */
+
+.workflow-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+
+  &__controls {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+    padding: var(--space-3) var(--space-4);
+    background-color: var(--bg-surface);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+  }
+
+  &__controls-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__controls-label {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+
+  &__controls-meta {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  &__count {
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    padding: var(--space-1) var(--space-2);
+    background-color: var(--bg-elevated);
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border);
+  }
+
+  &__sort {
+    display: flex;
+    gap: var(--space-1);
+  }
+
+  &__sort-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-2) var(--space-3);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--duration-hover);
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    &:hover {
+      color: var(--text-primary);
+      border-color: var(--border-strong);
+      background-color: var(--bg-elevated);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    &--active {
+      color: var(--accent);
+      background-color: var(--accent-bg);
+      border-color: var(--accent);
+    }
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+
+    @media (min-width: 640px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (min-width: 1024px) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+}

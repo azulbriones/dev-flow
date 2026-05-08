@@ -1,0 +1,181 @@
+/* ============================================================================
+   Terminal Panel - Enhanced Logs Display
+   ============================================================================ */
+
+.terminal-panel {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--terminal-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  height: 100%;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    background-color: var(--bg-elevated);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  &__title-text {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  /* Filter Input */
+  &__filter {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-1) var(--space-2);
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    transition: border-color var(--duration-hover);
+
+    &:focus-within {
+      border-color: var(--accent);
+    }
+
+    svg {
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    input {
+      width: 120px;
+      background: transparent;
+      border: none;
+      font-size: 0.75rem;
+      color: var(--text-primary);
+      outline: none;
+
+      &::placeholder {
+        color: var(--text-placeholder);
+      }
+    }
+  }
+
+  &__filter-clear {
+    color: var(--text-muted);
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+
+    &:hover {
+      color: var(--text-primary);
+    }
+  }
+
+  /* Sticky Toggle */
+  &__toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+
+    input {
+      accent-color: var(--accent);
+    }
+  }
+
+  /* Terminal Content */
+  &__content {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-3);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    line-height: 1.5;
+  }
+
+  &__empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+  }
+}
+
+/* Terminal Line Styles */
+.terminal__line {
+  white-space: pre-wrap;
+  word-break: break-all;
+
+  &--prompt {
+    color: var(--terminal-prompt);
+  }
+
+  &--error {
+    color: var(--terminal-error);
+  }
+
+  &--warning {
+    color: var(--terminal-warning);
+  }
+
+  &--success {
+    color: var(--terminal-success);
+  }
+
+  &--step {
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  &--separator {
+    color: var(--terminal-dim);
+  }
+}
+
+/* Status Indicator */
+.terminal__status {
+  font-size: 0.75rem;
+  font-weight: 500;
+
+  &--success {
+    color: var(--success);
+  }
+
+  &--error {
+    color: var(--error);
+  }
+
+  &--warning,
+  &--running {
+    color: var(--warning);
+    animation: status-pulse 1.5s ease-in-out infinite;
+  }
+}
+
+@keyframes status-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}

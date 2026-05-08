@@ -1,0 +1,204 @@
+/* ============================================================================
+   Workflows Composer - Modern Styling
+   ============================================================================ */
+
+.workflows-composer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  height: calc(100vh - 80px);
+
+  @media (min-width: 640px) {
+    padding: var(--space-6);
+    gap: var(--space-6);
+  }
+
+  &__header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+
+    @media (min-width: 640px) {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+  }
+
+  &__back {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-md);
+    transition: all var(--duration-hover);
+
+    &:hover {
+      color: var(--accent);
+      background-color: var(--accent-bg);
+    }
+  }
+
+  &__breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: 0.875rem;
+    color: var(--text-muted);
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    span {
+      color: var(--text-primary);
+      font-weight: 500;
+
+      &.text-accent {
+        color: var(--accent);
+      }
+    }
+  }
+
+  &__form {
+    background-color: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+
+    @media (min-width: 640px) {
+      padding: var(--space-5);
+    }
+  }
+
+  &__form-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+    align-items: end;
+
+    @media (min-width: 640px) {
+      grid-template-columns: 1fr 1fr auto;
+    }
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+
+    label {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+  }
+
+  &__input {
+    padding: var(--space-2) var(--space-3);
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    transition: all var(--duration-hover);
+
+    &::placeholder {
+      color: var(--text-muted);
+    }
+
+    &:hover {
+      border-color: var(--border-strong);
+    }
+
+    &:focus {
+      border-color: var(--accent);
+      outline: none;
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    &.mono {
+      font-family: var(--font-mono);
+    }
+  }
+
+  &__actions {
+    display: flex;
+    gap: var(--space-2);
+
+    button {
+      padding: var(--space-2) var(--space-4);
+      border-radius: var(--radius-md);
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--duration-hover);
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+  }
+
+  &__error {
+    margin-top: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    background: rgba(239, 68, 68, 0.08);
+    color: var(--error);
+    font-size: 0.875rem;
+  }
+
+  &__success {
+    margin-top: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--success-border);
+    background: var(--success-bg);
+    color: var(--success);
+    font-size: 0.875rem;
+  }
+
+  &__main {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+    flex: 1;
+    min-height: 0;
+
+    @media (min-width: 1024px) {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  &__editor {
+    display: flex;
+    min-height: 300px;
+    overflow: hidden;
+  }
+
+  &__terminal {
+    display: flex;
+    min-height: 300px;
+    overflow: hidden;
+  }
+
+  &__dag {
+    background-color: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+  }
+}
