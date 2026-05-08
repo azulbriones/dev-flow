@@ -1,5 +1,6 @@
 """Tests for Alembic migration bootstrap."""
 
+import importlib.util
 from pathlib import Path
 
 import pytest
@@ -10,6 +11,21 @@ from sqlalchemy import create_engine, text
 
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
 ALEMBIC_INI = BACKEND_ROOT / "alembic.ini"
+MIGRATION_PATH = (
+    BACKEND_ROOT
+    / "alembic"
+    / "versions"
+    / "0001_execution_workflow_id_nullable.py"
+)
+
+_migration_spec = importlib.util.spec_from_file_location(
+    "execution_workflow_id_nullable",
+    MIGRATION_PATH,
+)
+assert _migration_spec is not None and _migration_spec.loader is not None
+_migration_module = importlib.util.module_from_spec(_migration_spec)
+_migration_spec.loader.exec_module(_migration_module)
+MigrationSafetyError = _migration_module.MigrationSafetyError
 
 
 def make_config(db_path: Path) -> Config:
@@ -140,5 +156,5 @@ def test_downgrade_rejects_null_workflow_ids(tmp_path: Path) -> None:
             )
         )
 
-    with pytest.raises(RuntimeError, match="Cannot downgrade"):
+    with pytest.raises(MigrationSafetyError, match="Cannot downgrade"):
         command.downgrade(make_config(db_path), "base")

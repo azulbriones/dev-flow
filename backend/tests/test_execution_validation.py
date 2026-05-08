@@ -16,6 +16,7 @@ from app.models.workflow import Workflow
 from app.routes.execute import _close_websocket_safely
 from app.schemas.execution import ExecutionCreate
 from app.services import execution_service
+from app.services.workflow_service import WorkflowValidationError
 from app.tasks.workflow import execute_workflow as execute_workflow_task
 
 
@@ -45,7 +46,7 @@ def test_execute_workflow_rejects_invalid_structure(
     db_session.commit()
     db_session.refresh(workflow)
 
-    with pytest.raises(ValueError, match="debe ser una lista"):
+    with pytest.raises(WorkflowValidationError, match="debe ser una lista"):
         execution_service.execute_workflow(
             db_session,
             ExecutionCreate(workflow_id=workflow.id),
