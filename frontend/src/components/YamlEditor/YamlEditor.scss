@@ -1,0 +1,109 @@
+/* YamlEditor - Code editor with line numbers */
+
+.yaml-editor {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background-color: #000000;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  flex: 1;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-2) var(--space-4);
+    background-color: #0a0a0a;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  &__title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  &__dots {
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  &__dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    opacity: 0.5;
+
+    &--close {
+      background-color: #f43f5e;
+    }
+
+    &--min {
+      background-color: #f59e0b;
+    }
+
+    &--max {
+      background-color: #10b981;
+    }
+  }
+
+  &__content {
+    display: flex;
+    flex: 1;
+    overflow: auto;
+    background-color: #000000;
+  }
+
+  &__lines {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-4) var(--space-2);
+    background-color: rgba(0, 0, 0, 0.3);
+    border-right: 1px solid #1e1e1e;
+    user-select: none;
+    flex-shrink: 0;
+  }
+
+  &__line-number {
+    font-family: 'Fira Code', 'Monaco', 'Courier New', monospace;
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    color: #64748b;
+    text-align: right;
+    min-width: 32px;
+    padding-right: var(--space-2);
+  }
+
+  &__textarea {
+    flex: 1;
+    padding: var(--space-4);
+    background: transparent;
+    border: none;
+    font-family: 'Fira Code', 'Monaco', 'Courier New', monospace;
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    color: #e2e8f0;
+    resize: none;
+    outline: none;
+    min-width: 0;
+
+    &::placeholder {
+      color: #64748b;
+    }
+
+    &:focus {
+      background-color: rgba(99, 102, 241, 0.05);
+    }
+
+    &:read-only {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+  }
+}

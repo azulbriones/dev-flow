@@ -1,0 +1,38 @@
+.demo-banner {
+  background-color: var(--accent-muted);
+  border-bottom: 1px solid var(--accent);
+  padding: var(--space-2) var(--space-4);
+
+  &__content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+  }
+
+  &__icon {
+    width: 16px;
+    height: 16px;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+
+  &__text {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+
+    strong {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      background-color: var(--bg-surface);
+      padding: 1px 4px;
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+    }
+  }
+}

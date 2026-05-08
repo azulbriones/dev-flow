@@ -1,0 +1,180 @@
+/* ============================================================================
+  Charts - Shared Styles
+   ============================================================================ */
+
+/* Base chart container */
+.chart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+
+  &__eyebrow {
+    font-size: 0.625rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin: 0;
+  }
+
+  &__title {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    flex-shrink: 0;
+  }
+
+  &__meta {
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: var(--text-muted);
+    margin: 0;
+  }
+
+  &__content {
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    &--donut {
+      min-height: 155px;
+    }
+
+    &--bars {
+      min-height: 0;
+      justify-content: flex-start;
+    }
+  }
+
+  /* Donut chart with centered total */
+  &__donut-container {
+    position: relative;
+    min-height: 165px;
+    margin-top: var(--space-1);
+  }
+
+  &__donut-center {
+    position: absolute;
+    top: 43%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+    text-align: center;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  &__donut-value {
+    font-size: 1.625rem;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    color: var(--text-primary);
+    line-height: 1;
+  }
+
+  &__donut-label {
+    font-size: 0.625rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-top: var(--space-1);
+  }
+}
+
+/* TopWorkflowsChart with staggered animations */
+.chart__bars {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-top: 0;
+}
+
+.chart__bar-row {
+  display: grid;
+  grid-template-columns: minmax(72px, 1fr) 1fr 32px;
+  align-items: center;
+  gap: var(--space-1);
+  opacity: 0;
+  transform: translateX(-20px);
+  transition:
+    opacity 0.4s ease var(--delay),
+    transform 0.4s ease var(--delay);
+}
+
+.chart__bar-row--visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.chart__bar-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chart__bar-container {
+  height: 8px;
+  background-color: var(--bg-surface);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.chart__bar-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+  width: 0%;
+  background: var(--bar-gradient);
+  transition-delay: calc(var(--delay) + 100ms);
+}
+
+.chart__bar-fill--visible {
+  width: var(--bar-width);
+}
+
+.chart__tooltip-wrapper {
+  z-index: 20;
+}
+
+.chart .recharts-legend-wrapper {
+  color: var(--text-muted);
+  font-size: 11px;
+  padding-top: 8px;
+}
+
+.chart__tooltip {
+  background-color: var(--bg-surface) !important;
+  border: 1px solid var(--border-strong) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: 0 16px 32px -20px rgba(0, 0, 0, 0.45) !important;
+  padding: var(--space-2) var(--space-3) !important;
+  color: var(--text-primary) !important;
+}
+
+.chart__tooltip-label {
+  color: var(--text-muted) !important;
+  font-size: 0.75rem !important;
+  margin-bottom: var(--space-1);
+}
+
+.chart__tooltip-item {
+  color: var(--text-primary) !important;
+  font-size: 0.75rem !important;
+}
+
+.chart__bar-value {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+  text-align: right;
+}

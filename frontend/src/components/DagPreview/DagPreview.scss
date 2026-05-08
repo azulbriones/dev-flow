@@ -1,0 +1,129 @@
+/* DagPreview - Workflow DAG visualization */
+.dag-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background-color: #0f0f0f;
+  border: 1px solid #333;
+  border-radius: var(--radius-md);
+  min-height: 100px;
+
+  &--empty {
+    color: #64748b;
+    font-size: 0.875rem;
+    justify-content: center;
+    align-items: center;
+  }
+
+  &__title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: var(--space-4);
+  }
+
+  &__nodes {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-4);
+    overflow-x: auto;
+    padding: var(--space-4) 0;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+  }
+
+  &__connector {
+    flex-shrink: 0;
+  }
+
+  &__line {
+    width: 40px;
+    height: 2px;
+    background-color: var(--border);
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%) rotate(45deg);
+      width: 8px;
+      height: 8px;
+      border-right: 2px solid var(--border);
+      border-top: 2px solid var(--border);
+    }
+  }
+}
+
+/* DAG Node */
+.dag-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-3);
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  min-width: 80px;
+
+  &__name {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-primary);
+  }
+
+  &__status {
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    margin-top: var(--space-1);
+  }
+
+  &--done {
+    border-color: var(--success);
+    background-color: var(--success-bg);
+
+    .dag-node__status {
+      color: var(--success);
+    }
+  }
+
+  &--running {
+    border-color: var(--accent);
+    background-color: var(--accent-muted);
+    box-shadow: 0 0 15px var(--accent-glow);
+
+    .dag-node__status {
+      color: var(--accent);
+      animation: pulse 2s ease-in-out infinite;
+    }
+  }
+
+  &--waiting {
+    opacity: 0.5;
+
+    .dag-node__status {
+      color: var(--text-muted);
+    }
+  }
+
+  &--failed {
+    border-color: var(--error);
+    background-color: var(--error-bg);
+
+    .dag-node__status {
+      color: var(--error);
+    }
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
