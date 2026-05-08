@@ -76,6 +76,20 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
+> Nota: `backend/requirements.txt` es la fuente de verdad para dependencias del backend.
+> Si vas a ejecutar Celery/workflow tasks localmente, además instalá el paquete CLI
+> desde `cli/src` para que `devflow` esté disponible en el worker.
+
+#### Migración de base de datos
+
+```bash
+cd backend
+alembic -c alembic.ini upgrade head
+```
+
+> Alembic es el mecanismo formal de migración. El flujo oficial es
+> `alembic upgrade head`.
+
 #### Frontend
 
 ```bash
@@ -93,6 +107,8 @@ source venv/bin/activate
 pip install -e ./src
 devflow --help
 ```
+
+> Nota: las dependencias del CLI viven en `cli/src/pyproject.toml`.
 
 ## Comandos CLI
 

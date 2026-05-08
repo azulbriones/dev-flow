@@ -40,3 +40,4 @@ dist-ssr/
 # Misc
 *.log
 .gga
+.atl/
