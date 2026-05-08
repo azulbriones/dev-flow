@@ -11,4 +11,27 @@ export default defineConfig({
       '/api': 'http://backend:8000',
     },
   },
+  build: {
+    chunkSizeWarningLimit: 700,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('router')) {
+              return 'vendor-react';
+            }
+            if (id.includes('@tanstack')) {
+              return 'vendor-query';
+            }
+            if (id.includes('recharts')) {
+              return 'vendor-charts';
+            }
+            if (id.includes('sonner')) {
+              return 'vendor-sonner';
+            }
+          }
+        },
+      },
+    },
+  },
 });
