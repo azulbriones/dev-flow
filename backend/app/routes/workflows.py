@@ -6,19 +6,21 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..schemas.workflow import WorkflowCreate, WorkflowResponse
+from ..schemas.workflow import WorkflowCreate, WorkflowListResponse, WorkflowResponse
 from ..services.workflow_service import (
     create_workflow,
     delete_workflow,
     get_workflow,
     list_workflows,
+    WorkflowValidationError,
+    update_workflow,
 )
 
 router = APIRouter(prefix="/workflows", tags=["workflows"])
 
 
-@router.get("", response_model=List[WorkflowResponse])
-def get_workflows(db: Session = Depends(get_db)) -> List[WorkflowResponse]:
+@router.get("", response_model=List[WorkflowListResponse])
+def get_workflows(db: Session = Depends(get_db)) -> List[WorkflowListResponse]:
     """List all workflows.
 
     Args:
@@ -44,7 +46,13 @@ def post_workflow(
     Returns:
         Created workflow.
     """
-    return create_workflow(db, workflow_data)
+    try:
+        return create_workflow(db, workflow_data)
+    except WorkflowValidationError as exc:
+        raise HTTPException(
+            status_code=exc.status_code,
+            detail=str(exc),
+        )
 
 
 @router.get("/{workflow_id}", response_model=WorkflowResponse)
@@ -93,3 +101,38 @@ def delete_workflow_by_id(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Workflow {workflow_id} not found",
         )
+
+
+@router.put("/{workflow_id}", response_model=WorkflowResponse)
+def put_workflow(
+    workflow_id: int,
+    workflow_data: WorkflowCreate,
+    db: Session = Depends(get_db),
+) -> WorkflowResponse:
+    """Update a workflow.
+
+    Args:
+        workflow_id: Workflow ID.
+        workflow_data: Updated workflow data.
+        db: Database session.
+
+    Returns:
+        Updated workflow.
+
+    Raises:
+        HTTPException: If workflow not found.
+    """
+    try:
+        updated = update_workflow(db, workflow_id, workflow_data)
+    except WorkflowValidationError as exc:
+        raise HTTPException(
+            status_code=exc.status_code,
+            detail=str(exc),
+        )
+
+    if not updated:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Workflow {workflow_id} not found",
+        )
+    return updated

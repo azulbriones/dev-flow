@@ -1,7 +1,7 @@
 """Execution routes - Execute and WebSocket endpoints."""
 
 import logging
-from typing import List
+from typing import List, Optional
 
 from fastapi import (
     APIRouter,
@@ -12,20 +12,34 @@ from fastapi import (
     status,
 )
 from sqlalchemy.orm import Session
+from starlette.websockets import WebSocketState
 
 from ..database import get_db
 from ..schemas.execution import ExecutionCreate, ExecutionResponse
 from ..services.execution_service import (
+    WorkflowNotFoundError,
+    WorkflowValidationError,
+    execute_workflow,
     get_execution,
     list_executions,
 )
-from ..services.execution_service import execute_workflow
-from ..services.workflow_service import get_workflow
 from ..core.redis import subscribe_output
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="", tags=["execute"])
+
+
+async def _close_websocket_safely(websocket: WebSocket) -> None:
+    """Close a websocket only if it is still open."""
+    if websocket.application_state == WebSocketState.DISCONNECTED:
+        return
+
+    try:
+        await websocket.close()
+    except RuntimeError as exc:
+        if "close message has been sent" not in str(exc):
+            raise
 
 
 # ============================================================================
@@ -34,7 +48,9 @@ router = APIRouter(prefix="", tags=["execute"])
 
 
 @router.post(
-    "/execute", response_model=ExecutionResponse, status_code=status.HTTP_202_ACCEPTED
+    "/execute",
+    response_model=ExecutionResponse,
+    status_code=status.HTTP_202_ACCEPTED,
 )
 def post_execute(
     execution_data: ExecutionCreate,
@@ -52,18 +68,14 @@ def post_execute(
     Raises:
         HTTPException: If no content provided.
     """
-    # Validate workflow_id if provided
-    if execution_data.workflow_id:
-        workflow = get_workflow(db, execution_data.workflow_id)
-        if not workflow:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Workflow {execution_data.workflow_id} not found",
-            )
-
     try:
         return execute_workflow(db, execution_data)
-    except ValueError as e:
+    except WorkflowNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exc),
+        )
+    except WorkflowValidationError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
@@ -71,7 +83,10 @@ def post_execute(
 
 
 @router.get("/executions", response_model=List[ExecutionResponse])
-def get_executions(db: Session = Depends(get_db)) -> List[ExecutionResponse]:
+def get_executions(
+    workflow_id: Optional[int] = None,
+    db: Session = Depends(get_db),
+) -> List[ExecutionResponse]:
     """List all executions.
 
     Args:
@@ -80,7 +95,7 @@ def get_executions(db: Session = Depends(get_db)) -> List[ExecutionResponse]:
     Returns:
         List of executions.
     """
-    return list_executions(db)
+    return list_executions(db, workflow_id=workflow_id)
 
 
 @router.get("/executions/{execution_id}", response_model=ExecutionResponse)
@@ -116,7 +131,9 @@ def get_execution_by_id(
 
 @router.websocket("/execute/{execution_id}/stream")
 async def websocket_execute(
-    websocket: WebSocket, execution_id: int, db: Session = Depends(get_db)
+    websocket: WebSocket,
+    execution_id: int,
+    db: Session = Depends(get_db),
 ) -> None:
     """WebSocket endpoint for streaming execution output via Redis Pub/Sub.
 
@@ -135,15 +152,15 @@ async def websocket_execute(
     try:
         await websocket.accept()
         logger.info(f"WebSocket accepted for execution {execution_id}")
-    except Exception as e:
-        logger.error(f"Failed to accept WebSocket: {e}")
+    except (RuntimeError, WebSocketDisconnect) as exc:
+        logger.error(f"Failed to accept WebSocket: {exc}")
         return
 
     # Verify execution exists
     execution = get_execution(db, execution_id)
     if not execution:
         await websocket.send_text("ERROR: Execution not found")
-        await websocket.close()
+        await _close_websocket_safely(websocket)
         return
 
     logger.info(f"Execution {execution_id} status: {execution.status}")
@@ -151,7 +168,7 @@ async def websocket_execute(
     # If execution already completed, send stored output
     if execution.status in ("completed", "failed") and execution.output:
         await websocket.send_text(execution.output)
-        await websocket.close()
+        await _close_websocket_safely(websocket)
         return
 
     try:
@@ -160,28 +177,12 @@ async def websocket_execute(
             await websocket.send_text(line)
 
             # Check if execution completed (by parsing the final message)
-            if line.startswith("=== Execution"):
+            # executor.py sends "==================" (50 equals) and
+            # then "Workflow completado exitosamente!"
+            if line.startswith("=") or "completado" in line.lower():
                 break
 
     except WebSocketDisconnect:
         logger.info(f"WebSocket disconnected for execution {execution_id}")
     finally:
-        await websocket.close()
-
-
-# ============================================================================
-# WebSocket - DEPRECATED (Legacy Queue-based Pattern)
-# ============================================================================
-# NOTE: This endpoint is deprecated. Use /execute/{execution_id}/stream instead.
-
-
-@router.websocket("/legacy/{execution_id}/stream")
-async def websocket_execute_legacy(
-    websocket: WebSocket, execution_id: int, db: Session = Depends(get_db)
-) -> None:
-    """DEPRECATED - Legacy WebSocket endpoint.
-
-    This endpoint used the queue-based pattern. It is kept for reference
-    but should not be used in production.
-    """
-    await websocket.close()
+        await _close_websocket_safely(websocket)

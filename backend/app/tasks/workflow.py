@@ -1,10 +1,6 @@
 """Celery tasks for workflow execution."""
 
-import sys
 from datetime import datetime
-from pathlib import Path
-
-import yaml
 from celery import Task
 from sqlalchemy import exc as sqlalchemy_exc
 
@@ -12,24 +8,6 @@ from app.core.redis import publish_output_sync
 from app.database import SessionLocal
 from app.models.execution import Execution
 from app.tasks import celery_app
-
-
-def publish(line: str, exec_id: int) -> None:
-    """Publish output to Redis (sync)."""
-    publish_output_sync(exec_id, line)
-
-
-def get_cli_path() -> Path:
-    """Get CLI path for importing."""
-    cli_path = Path(__file__).parent.parent.parent.parent / "cli" / "src"
-    return cli_path
-
-
-def setup_cli_import() -> None:
-    """Add CLI to Python path if not already added."""
-    cli_path = get_cli_path()
-    if str(cli_path) not in sys.path:
-        sys.path.insert(0, str(cli_path))
 
 
 @celery_app.task(bind=True, name="execute_workflow")
@@ -43,8 +21,6 @@ def execute_workflow(self: Task, execution_id: int, yaml_content: str) -> dict:
     Returns:
         Execution result dict.
     """
-    setup_cli_import()
-
     # Import CLI modules
     from devflow import run_workflow
     from devflow.models import ExecutionError, WorkflowCycleError, Workflow, Step
@@ -67,14 +43,27 @@ def execute_workflow(self: Task, execution_id: int, yaml_content: str) -> dict:
 
         def output_handler(line: str) -> None:
             """Stream output to Redis and accumulate."""
-            publish(f"{line}\n", execution_id)
+            publish_output_sync(execution_id, f"{line}\n")
             output_lines.append(line)
 
         # Publish initial status
         output_handler(f"Starting workflow execution {execution_id}")
 
         # Parse and validate workflow from YAML
-        data = yaml.safe_load(yaml_content)
+        from app.services.execution_service import validate_workflow_yaml
+        from app.services.workflow_service import WorkflowValidationError
+
+        try:
+            data = validate_workflow_yaml(yaml_content)
+        except WorkflowValidationError as e:
+            output_handler(f"Error: {e}")
+            execution.status = "failed"
+            execution.error_message = str(e)
+            execution.output = "\n".join(output_lines)
+            execution.finished_at = datetime.utcnow()
+            db.commit()
+            return {"status": "failed", "error": str(e)}
+
         workflow = Workflow(
             name=data.get("name", "Unnamed"),
             description=data.get("description", ""),
@@ -83,10 +72,10 @@ def execute_workflow(self: Task, execution_id: int, yaml_content: str) -> dict:
                 Step(
                     name=s["name"],
                     run=s["run"],
-                    depends_on=s.get("depends_on", []),
+                    depends_on=s.get("depends_on", s.get("requires", [])),
                 )
                 for s in data.get("steps", [])
-            ]
+            ],
         )
 
         output_handler(f"Workflow: {workflow.name}")
@@ -95,31 +84,31 @@ def execute_workflow(self: Task, execution_id: int, yaml_content: str) -> dict:
         try:
             result = run_workflow(workflow, output_callback=output_handler)
 
+            output_handler("Workflow completed successfully!")
+
             # Success
             execution.status = "completed"
             execution.output = "\n".join(output_lines)
             execution.finished_at = datetime.utcnow()
             db.commit()
-
-            output_handler("Workflow completed successfully!")
             return {"status": "completed", "result": result}
 
         except WorkflowCycleError as e:
+            output_handler("Error: Cycle detected in workflow")
             execution.status = "failed"
             execution.error_message = f"Cycle detected: {e}"
             execution.output = "\n".join(output_lines)
             execution.finished_at = datetime.utcnow()
             db.commit()
-            output_handler(f"Error: Cycle detected in workflow")
             return {"status": "failed", "error": str(e)}
 
         except ExecutionError as e:
+            output_handler(f"Error: {e}")
             execution.status = "failed"
             execution.error_message = str(e)
             execution.output = "\n".join(output_lines)
             execution.finished_at = datetime.utcnow()
             db.commit()
-            output_handler(f"Error: {e}")
             return {"status": "failed", "error": str(e)}
 
     except (sqlalchemy_exc.SQLAlchemyError, RuntimeError, OSError) as e:
@@ -127,12 +116,12 @@ def execute_workflow(self: Task, execution_id: int, yaml_content: str) -> dict:
         try:
             execution = db.query(Execution).filter(Execution.id == execution_id).first()
             if execution:
+                publish_output_sync(execution_id, f"\nUnexpected error: {e}\n")
                 execution.status = "failed"
                 execution.error_message = str(e)
                 execution.output = "\n".join(output_lines)
                 execution.finished_at = datetime.utcnow()
                 db.commit()
-            publish(f"\nUnexpected error: {e}\n", execution_id)
         except sqlalchemy_exc.SQLAlchemyError:
             pass  # Can't recover if DB is broken
 
