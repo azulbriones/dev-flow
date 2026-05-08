@@ -1,4 +1,4 @@
-"""DevFlow CLI - Main entry point."""
+"""Definir el punto de entrada principal del CLI."""
 
 import asyncio
 
@@ -16,16 +16,30 @@ from .parser import parse_workflow
 console = Console()
 
 
+def _get_status_color(status: str) -> str:
+    """Map execution status to a display color."""
+    if status == "completed":
+        return "green"
+    if status == "failed":
+        return "red"
+    return "yellow"
+
+
 @click.group()
 def cli() -> None:
-    """DevFlow CLI - Automatización de Workflows."""
+    """Definir la interfaz de línea de comandos de DevFlow."""
     pass
 
 
 @cli.command()
 @click.argument("yaml_path", type=click.Path(exists=True))
 @click.option("--remote", "-r", is_flag=True, help="Ejecutar en backend remoto.")
-@click.option("--watch", "-w", is_flag=True, help="Monitorear ejecución (solo remote).")
+@click.option(
+    "--watch",
+    "-w",
+    is_flag=True,
+    help="Monitorear ejecución (solo remote).",
+)
 def run(yaml_path: str, remote: bool, watch: bool) -> None:
     """Ejecuta un workflow desde un archivo YAML."""
     if remote:
@@ -42,7 +56,8 @@ def _run_remote(yaml_path: str, watch: bool) -> None:
 
         exec_id = result["id"]
         console.print(
-            f"[bold green]✅ Ejecución creada![/bold green] ID: [yellow]{exec_id}[/yellow]"
+            f"[bold green]✅ Ejecución creada![/bold green] ID: "
+            f"[yellow]{exec_id}[/yellow]"
         )
 
         if watch:
@@ -50,7 +65,7 @@ def _run_remote(yaml_path: str, watch: bool) -> None:
         else:
             console.print(f"\nUsa 'devflow status {exec_id}' para ver el progreso.")
 
-    except ValueError as e:
+    except WorkflowError as e:
         console.print(f"[bold red]Error:[/bold red] {e}")
 
 
@@ -78,7 +93,7 @@ def _run_local(yaml_path: str) -> None:
         run_workflow(workflow, output_callback=output_handler)
         console.print("\n[bold green]✅ Completado![/bold green]")
 
-    except (ValueError, WorkflowError) as e:
+    except WorkflowError as e:
         console.print(f"[bold red]Error:[/bold red] {e}")
 
 
@@ -96,10 +111,10 @@ def validate(yaml_path: str) -> None:
 
         console.print("\n[bold]Dependencias:[/bold]")
         for step in workflow.steps:
-            if step.requires:
-                console.print(f"  - {step.name} → {', '.join(step.requires)}")
+            if step.depends_on:
+                console.print(f"  - {step.name} → {', '.join(step.depends_on)}")
 
-    except ValueError as e:
+    except WorkflowError as e:
         console.print(f"[bold red]Error:[/bold red] {e}")
         raise click.Abort()
 
@@ -118,7 +133,7 @@ steps:
 
   - name: segundo-paso
     run: echo "Segundo paso"
-    requires:
+    depends_on:
       - primer-paso
 """
     with open(name, "w") as f:
@@ -134,9 +149,7 @@ def status(execution_id: int) -> None:
         exec_data = get_execution(execution_id)
         status_val = exec_data.get("status", "unknown")
 
-        color = "green" if status_val == "completed" else "yellow"
-        if status_val == "failed":
-            color = "red"
+        color = _get_status_color(status_val)
 
         console.print(f"[bold]Estado:[/bold] [{color}]{status_val}[/{color}]")
         if output := exec_data.get("output"):
@@ -169,9 +182,7 @@ def _poll_execution(execution_id: int) -> None:
                 exec_data = get_execution(execution_id)
                 status = exec_data["status"]
 
-                color = "green" if status == "completed" else "yellow"
-                if status == "failed":
-                    color = "red"
+                color = _get_status_color(status)
 
                 live.update(
                     Panel(

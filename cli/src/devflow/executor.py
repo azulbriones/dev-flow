@@ -1,4 +1,4 @@
-"""DevFlow Executor - Kahn algorithm and step execution."""
+"""Definir la ejecución de workflows del CLI."""
 
 import subprocess
 from collections import deque
@@ -236,4 +236,5 @@ def run_workflow(
 
     if output_callback:
         output_callback("=" * 50)
+        output_callback("=== Execution completed ===")
         output_callback("Workflow completado exitosamente!")

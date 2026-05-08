@@ -1,4 +1,4 @@
-"""DevFlow Models - Domain entities and exceptions."""
+"""Definir modelos y excepciones del CLI."""
 
 from dataclasses import dataclass
 from typing import List
@@ -9,13 +9,31 @@ from typing import List
 
 
 class WorkflowError(Exception):
-    """Excepcion base para errores de workflow."""
+    """Definir la excepción base para errores de workflow."""
+
+    pass
+
+
+class WorkflowParseError(WorkflowError):
+    """Definir un error por parseo de workflow."""
+
+    pass
+
+
+class WorkflowValidationError(WorkflowError):
+    """Definir un error por validación de workflow."""
+
+    pass
+
+
+class WorkflowAPIError(WorkflowError):
+    """Definir un error por fallos de la API de workflow."""
 
     pass
 
 
 class WorkflowCycleError(WorkflowError):
-    """Se lanza cuando se detecta un ciclo en las dependencias."""
+    """Definir un error por ciclo en las dependencias."""
 
     def __init__(self, cycle_steps: List[str]) -> None:
         self.cycle_steps = cycle_steps
@@ -24,7 +42,7 @@ class WorkflowCycleError(WorkflowError):
 
 
 class DependencyNotFoundError(WorkflowError):
-    """Se lanza cuando una dependencia no existe."""
+    """Definir un error por dependencia inexistente."""
 
     def __init__(self, step_name: str, missing_dep: str) -> None:
         self.step_name = step_name
@@ -35,7 +53,7 @@ class DependencyNotFoundError(WorkflowError):
 
 
 class ExecutionError(WorkflowError):
-    """Se lanza cuando un comando falla."""
+    """Definir un error por fallo de ejecución."""
 
     def __init__(self, step_name: str, command: str, returncode: int) -> None:
         self.step_name = step_name
@@ -51,7 +69,7 @@ class ExecutionError(WorkflowError):
 
 @dataclass
 class Step:
-    """Representa un paso en un workflow.
+    """Modelar un paso en un workflow.
 
     Attributes:
         name: Nombre único del paso.
@@ -64,7 +82,7 @@ class Step:
     depends_on: List[str]
 
     @classmethod
-    def from_dict(cls, data: dict) -> "Step":
+    def from_dict(cls: type["Step"], data: dict) -> "Step":
         """Crea un Step desde un diccionario.
 
         Args:
@@ -76,13 +94,13 @@ class Step:
         return cls(
             name=data.get("name", ""),
             run=data.get("run", ""),
-            depends_on=data.get("depends_on", []),
+            depends_on=data.get("depends_on", data.get("requires", [])),
         )
 
 
 @dataclass
 class Workflow:
-    """Representa un workflow completo.
+    """Modelar un workflow completo.
 
     Attributes:
         name: Nombre del workflow.
@@ -97,7 +115,7 @@ class Workflow:
     steps: List[Step]
 
     @classmethod
-    def from_dict(cls, data: dict) -> "Workflow":
+    def from_dict(cls: type["Workflow"], data: dict) -> "Workflow":
         """Crea un Workflow desde un diccionario.
 
         Args:

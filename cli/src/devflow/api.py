@@ -1,11 +1,14 @@
-"""DevFlow API client for CLI."""
+"""Definir el cliente API del CLI."""
 
 import os
-from typing import Any, Callable
+from collections.abc import Callable
 
 import httpx
 import yaml
 import websockets
+
+from .models import WorkflowAPIError, WorkflowParseError, WorkflowValidationError
+from .parser import validate_workflow
 
 
 def get_api_url() -> str:
@@ -18,7 +21,7 @@ def get_ws_url() -> str:
     return get_api_url().replace("http", "ws")
 
 
-def create_execution(yaml_path: str) -> dict[str, Any]:
+def create_execution(yaml_path: str) -> dict[str, object]:
     """Send workflow YAML to backend for execution.
 
     Args:
@@ -28,7 +31,9 @@ def create_execution(yaml_path: str) -> dict[str, Any]:
         Execution response with ID and status.
 
     Raises:
-        ValueError: If YAML file is invalid.
+        WorkflowParseError: If the file cannot be read or parsed.
+        WorkflowValidationError: If the workflow payload is invalid.
+        WorkflowAPIError: If the backend rejects the request.
     """
     api_url = get_api_url()
 
@@ -36,14 +41,18 @@ def create_execution(yaml_path: str) -> dict[str, Any]:
         with open(yaml_path) as f:
             yaml_content = f.read()
     except FileNotFoundError:
-        raise ValueError(f"Archivo no encontrado: {yaml_path}")
+        raise WorkflowParseError(f"Archivo no encontrado: {yaml_path}")
     except OSError as e:
-        raise ValueError(f"Error leyendo archivo: {e}")
+        raise WorkflowParseError(f"Error leyendo archivo: {e}")
 
     try:
-        yaml.safe_load(yaml_content)
+        workflow_data = yaml.safe_load(yaml_content)
     except yaml.YAMLError as e:
-        raise ValueError(f"YAML inválido: {e}")
+        raise WorkflowParseError(f"YAML inválido: {e}")
+
+    errors = validate_workflow(workflow_data)
+    if errors:
+        raise WorkflowValidationError("\n".join(errors))
 
     response = httpx.post(
         f"{api_url}/api/v1/execute",
@@ -51,15 +60,15 @@ def create_execution(yaml_path: str) -> dict[str, Any]:
         timeout=30.0,
     )
 
-    if response.status_code == 200:
+    if response.status_code in {200, 202}:
         return response.json()
-    elif response.status_code == 422:
-        raise ValueError(f"YAML inválido: {response.json()}")
-    else:
-        raise ValueError(f"Error API: {response.status_code}")
+    if response.status_code == 422:
+        raise WorkflowValidationError(f"YAML inválido: {response.json()}")
+
+    raise WorkflowAPIError(f"Error API: {response.status_code}")
 
 
-def get_execution(execution_id: int) -> dict[str, Any]:
+def get_execution(execution_id: int) -> dict[str, object]:
     """Get execution status."""
     api_url = get_api_url()
     response = httpx.get(f"{api_url}/api/v1/executions/{execution_id}", timeout=10.0)
