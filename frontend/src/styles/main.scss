@@ -1,0 +1,79 @@
+/* DevFlow Global Styles */
+@use './theme.scss';
+@use './legacy/button.scss';
+@use './legacy/form.scss';
+
+/* Feature Styles */
+@use '../features/workflows/components/WorkflowDetailLayout/workflowDetailLayout.scss';
+@use '../features/workflows/components/WorkflowDetailLayout/yamlViewer.scss';
+@use '../features/workflows/components/WorkflowDetailLayout/terminalPanel.scss';
+@use '../features/workflows/components/StepGraph/stepGraph.scss';
+@use '../features/workflows/components/workflowList.scss';
+@use '../features/workflows/styles/workflowCard.scss';
+
+/* Page Styles */
+@use '../pages/WorkflowDetail.scss';
+@use '../pages/Dashboard.scss';
+@use '../pages/Workflows.scss';
+@use '../pages/Executions.scss';
+@use '../pages/WorkflowsComposer.scss';
+
+/* Component Styles */
+@use '../components/Navbar/Navbar.scss';
+@use '../components/ErrorMessage.scss';
+
+/* Sonner Toast Confirm */
+.toast-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  min-width: 280px;
+
+  span {
+    color: var(--text-primary);
+    font-size: 0.875rem;
+  }
+
+  &__actions {
+    display: flex;
+    gap: var(--space-2);
+    justify-content: flex-end;
+  }
+
+  &__cancel,
+  &__confirm {
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-md);
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 150ms ease;
+    border: 1px solid var(--border);
+  }
+
+  &__cancel {
+    background: transparent;
+    color: var(--text-muted);
+    border-color: var(--border);
+
+    &:hover {
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+    }
+  }
+
+  &__confirm {
+    background: var(--error);
+    color: white;
+    border-color: var(--error);
+
+    &:hover {
+      opacity: 0.9;
+    }
+  }
+}
