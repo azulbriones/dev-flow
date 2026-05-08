@@ -72,6 +72,7 @@ def process_workflow(workflow: dict) -> bool:
 - **SCREAMING_SNAKE_CASE** para constantes: `MAX_RETRIES`
 - Usar `const` sobre `let`, nunca `var`
 - Punto y coma al final de statements (EXCEPTO en JSX/TSX - las etiquetas HTML dentro de return no necesitan punto y coma)
+- Los campos de DTOs/payloads/respuestas que reflejan contratos serializados con backend/API pueden conservar el nombre del contrato (por ejemplo `created_at`, `workflow_id`) si el rename rompería el mapeo; la regla de camelCase aplica a variables, funciones y nombres locales del frontend.
 
 ### Componentes React
 
