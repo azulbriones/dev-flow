@@ -1,6 +1,7 @@
-"""Tests for Alembic migration bootstrap."""
+"""Verificar el bootstrap de migraciones Alembic."""
 
 import importlib.util
+import sys
 from pathlib import Path
 
 import pytest
@@ -19,11 +20,12 @@ MIGRATION_PATH = (
 )
 
 _migration_spec = importlib.util.spec_from_file_location(
-    "execution_workflow_id_nullable",
+    "0001_execution_workflow_id_nullable_py",
     MIGRATION_PATH,
 )
 assert _migration_spec is not None and _migration_spec.loader is not None
 _migration_module = importlib.util.module_from_spec(_migration_spec)
+sys.modules[_migration_spec.name] = _migration_module
 _migration_spec.loader.exec_module(_migration_module)
 MigrationSafetyError = _migration_module.MigrationSafetyError
 
@@ -82,7 +84,7 @@ def seed_legacy_schema(db_path: Path) -> None:
 
 
 def test_upgrade_normalizes_zero_workflow_ids(tmp_path: Path) -> None:
-    """Upgrade should allow ad hoc runs and preserve legacy rows."""
+    """Permitir runs ad hoc y preservar filas legacy."""
     db_path = tmp_path / "devflow.db"
     seed_legacy_schema(db_path)
 
@@ -100,7 +102,7 @@ def test_upgrade_normalizes_zero_workflow_ids(tmp_path: Path) -> None:
 
 
 def test_upgrade_handles_empty_executions_table(tmp_path: Path) -> None:
-    """Upgrade should work even when no executions exist yet."""
+    """Permitir el upgrade con la tabla executions vacía."""
     db_path = tmp_path / "empty.db"
     engine = create_engine(f"sqlite:///{db_path}")
     with engine.begin() as conn:
@@ -141,7 +143,7 @@ def test_upgrade_handles_empty_executions_table(tmp_path: Path) -> None:
 
 
 def test_downgrade_rejects_null_workflow_ids(tmp_path: Path) -> None:
-    """Downgrade should fail safely if NULL workflow IDs exist."""
+    """Bloquear el downgrade si existen workflow_id nulos."""
     db_path = tmp_path / "downgrade.db"
     seed_legacy_schema(db_path)
 
