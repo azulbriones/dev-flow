@@ -19,7 +19,7 @@ class ExecutionResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    workflow_id: int
+    workflow_id: Optional[int]
     status: str
     output: Optional[str]
     result: Optional[str]

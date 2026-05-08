@@ -12,15 +12,21 @@ class Execution(Base):
     """Execution database model."""
 
     def __repr__(self) -> str:
-        return f"<Execution(id={self.id}, workflow_id={self.workflow_id}, status='{self.status}')>"
+        return (
+            "<Execution("
+            f"id={self.id}, workflow_id={self.workflow_id}, "
+            f"status='{self.status}')>"
+        )
 
     __tablename__ = "executions"
 
     id = Column(Integer, primary_key=True, index=True)
-    workflow_id = Column(Integer, ForeignKey("workflows.id"), nullable=False)
-    status = Column(
-        String(50), default="pending"
-    )  # pending, running, completed, failed
+    workflow_id = Column(
+        Integer,
+        ForeignKey("workflows.id", ondelete="CASCADE"),
+        nullable=True,
+    )
+    status = Column(String(50), default="pending")
     output = Column(Text, nullable=True)
     result = Column(Text, nullable=True)
     error_message = Column(Text, nullable=True)

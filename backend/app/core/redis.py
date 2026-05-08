@@ -5,6 +5,7 @@ from typing import AsyncIterator
 
 import redis.asyncio as redis
 import redis as redis_sync
+from redis.exceptions import RedisError
 
 
 def get_redis_url() -> str:
@@ -48,22 +49,15 @@ class RedisClient:
     @classmethod
     async def unsubscribe(cls, pubsub: redis.client.PubSub) -> None:
         """Unsubscribe and close pubsub."""
-        await pubsub.unsubscribe()
-        await pubsub.close()
+        try:
+            await pubsub.unsubscribe()
+        except (RedisError, OSError, RuntimeError):
+            pass
 
-
-async def publish_output(execution_id: int, line: str) -> int:
-    """Publish workflow output to Redis channel (async).
-
-    Args:
-        execution_id: Execution ID.
-        line: Output line to publish.
-
-    Returns:
-        Number of subscribers received the message.
-    """
-    channel = f"execute:{execution_id}"
-    return await RedisClient.publish(channel, line)
+        try:
+            await pubsub.close()
+        except (RedisError, OSError, RuntimeError):
+            pass
 
 
 def publish_output_sync(execution_id: int, line: str) -> int:
@@ -100,5 +94,3 @@ async def subscribe_output(execution_id: int) -> AsyncIterator[str]:
                 yield message["data"]
     finally:
         await RedisClient.unsubscribe(pubsub)
-
-

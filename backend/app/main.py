@@ -1,31 +1,19 @@
 """Main FastAPI application for DevFlow."""
 
-import os
+from collections.abc import AsyncGenerator, Awaitable, Callable
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from starlette.middleware.wsgi import WSGIMiddleware
 
 from .database import Base, engine
 from .routes.v1 import get_v1_router
 from .core.redis import RedisClient
-
-
-# Default CORS origins for local development
-DEFAULT_ORIGINS = "*"  # noqa: E501
-
-
-def get_cors_origins() -> list[str]:
-    """Get CORS origins from environment."""
-    origins = os.getenv("CORS_ORIGINS", DEFAULT_ORIGINS)
-    if origins == "*":
-        return ["*"]
-    return [o.strip() for o in origins.split(",") if o.strip()]
+from .middleware.demo_mode import demo_mode_middleware, is_demo_mode
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Manage application lifecycle."""
     # Startup: create tables and Redis client
     Base.metadata.create_all(bind=engine)
@@ -51,6 +39,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Demo mode middleware - blocks write operations if enabled
+if is_demo_mode():
+    app.middleware("http")(demo_mode_middleware)
+
 
 # Include v1 router
 v1_router = get_v1_router()
@@ -58,7 +50,10 @@ app.include_router(v1_router, prefix="/api/v1")
 
 
 @app.middleware("http")
-async def add_version_header(request: Request, call_next):
+async def add_version_header(
+    request: Request,
+    call_next: Callable[[Request], Awaitable[Response]],
+) -> Response:
     """Add API version header to all v1 responses."""
     response = await call_next(request)
     if request.url.path.startswith("/api/v1"):
@@ -76,13 +71,3 @@ def root() -> dict:
 def health() -> dict:
     """Service health check endpoint."""
     return {"status": "healthy"}
-
-
-# Backward compatibility - deprecated /api routes
-@app.get("/api/{path:path}")
-async def deprecated_api(path: str) -> dict:
-    """Deprecated API endpoint - redirect to v1."""
-    return {
-        "error": f"Use /api/v1/{path} instead",
-        "deprecated": True,
-    }
