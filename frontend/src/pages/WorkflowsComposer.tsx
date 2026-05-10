@@ -22,6 +22,7 @@ import './WorkflowsComposer.scss';
 export const WorkflowsComposer = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const workflowId = id ? Number(id) : null;
 
   const { data: existingWorkflow, isLoading } = useQuery({
@@ -98,9 +99,9 @@ export const WorkflowsComposer = () => {
         ? await updateWorkflow(existingWorkflow.id, workflowData)
         : await createWorkflow(workflowData);
 
-      if (existingWorkflow?.id) syncWorkflowCaches(savedWorkflow);
+      if (existingWorkflow?.id) syncWorkflowCaches(queryClient, savedWorkflow);
       else {
-        insertWorkflowCaches(savedWorkflow);
+        insertWorkflowCaches(queryClient, savedWorkflow);
         navigate(`/workflows/${savedWorkflow.id}`, { replace: true });
       }
 
@@ -128,9 +129,9 @@ export const WorkflowsComposer = () => {
         ? await updateWorkflow(existingWorkflow.id, workflowData)
         : await createWorkflow(workflowData);
 
-      if (existingWorkflow?.id) syncWorkflowCaches(savedWorkflow);
+      if (existingWorkflow?.id) syncWorkflowCaches(queryClient, savedWorkflow);
       else {
-        insertWorkflowCaches(savedWorkflow);
+        insertWorkflowCaches(queryClient, savedWorkflow);
         navigate(`/workflows/${savedWorkflow.id}`, { replace: true });
       }
 
