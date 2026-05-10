@@ -7,6 +7,8 @@ from pathlib import Path
 import pytest
 from alembic import command
 from alembic.config import Config
+from alembic.operations import Operations
+from alembic.runtime.migration import MigrationContext
 from sqlalchemy import create_engine, text
 
 
@@ -158,5 +160,13 @@ def test_downgrade_rejects_null_workflow_ids(tmp_path: Path) -> None:
             )
         )
 
-    with pytest.raises(MigrationSafetyError, match="Cannot downgrade"):
-        command.downgrade(make_config(db_path), "base")
+    with engine.connect() as conn:
+        migration_context = MigrationContext.configure(conn)
+        operations = Operations(migration_context)
+        original_op = _migration_module.op
+        _migration_module.op = operations
+        try:
+            with pytest.raises(MigrationSafetyError, match="Cannot downgrade"):
+                _migration_module.downgrade()
+        finally:
+            _migration_module.op = original_op
