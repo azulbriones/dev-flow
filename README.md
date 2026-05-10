@@ -5,66 +5,61 @@
 [![Node](https://img.shields.io/badge/Node-22+-green.svg)](https://nodejs.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> Automatiza tus workflows de developer con CLI y visualizalos en un Dashboard en tiempo real.
+DevFlow es una plataforma para definir, ejecutar y monitorear workflows de desarrollo desde una CLI y un dashboard en tiempo real.
+El proyecto combina automatización local, ejecución asíncrona y observabilidad para seguir el estado de cada workflow sin perder contexto.
 
-## Descripción
+## Qué incluye
 
-DevFlow es una herramienta para automatizar workflows de developers. Define tus workflows en YAML, ejecutalos via CLI y monitorealos en un dashboard en tiempo real.
+- **CLI en Python** para inicializar, validar y ejecutar workflows.
+- **Backend en FastAPI** para exponer la API, coordinar ejecuciones y servir WebSockets.
+- **Workers con Celery** para procesar tareas en segundo plano.
+- **Frontend en React** para visualizar ejecuciones, estados y métricas.
+- **Persistencia y coordinación con Redis**.
+- **Contenedores Docker** para levantar el stack completo de forma reproducible.
 
-## Stack Tecnológico
+## Arquitectura general
 
-| Componente          | Tecnología                     |
-| ------------------- | ------------------------------ |
-| **CLI**             | Python + Click                 |
-| **Backend**         | FastAPI + SQLAlchemy + Redis   |
-| **Frontend**        | React + Vite + SCSS + Recharts |
-| **Tiempo Real**     | WebSockets                     |
-| **Background Jobs** | Celery + Redis                 |
-| **Contenedores**    | Docker + Docker Compose        |
+| Componente | Responsabilidad | Tecnologías |
+| --- | --- | --- |
+| CLI | Entrada principal para usuarios y automatizaciones | Python, Click |
+| Backend | API REST, WebSockets y lógica de coordinación | FastAPI, SQLAlchemy |
+| Worker | Ejecución asíncrona de workflows | Celery, Redis |
+| Frontend | Dashboard de monitoreo en tiempo real | React, Vite, SCSS, Recharts |
+| Infraestructura | Orquestación local de servicios | Docker, Docker Compose |
 
-## Estructura del Proyecto
+## Estructura del repositorio
 
-```
+```text
 dev-flow/
-├── docker-compose.yml     # Orquestación de servicios
-├── backend/               # API REST + WebSockets
-│   ├── app/
-│   │   └── main.py        # FastAPI entry point
-│   ├── requirements.txt   # Dependencias Python
-│   └── Dockerfile        # Imagen Docker
-├── frontend/              # Dashboard React
-│   ├── src/               # Código fuente
-│   ├── package.json      # Dependencias Node
-│   └── Dockerfile        # Imagen Docker
-└── cli/                   # CLI de comandos
-    ├── src/
-    │   ├── devflow/       # Paquete CLI
-    │   └── pyproject.toml
-    └── venv/             # Entorno virtual (no versionado)
+├── backend/        # API, migraciones y workers
+├── cli/            # CLI instalada como paquete Python
+├── frontend/       # Dashboard web
+├── docker-compose.yml
+└── README.md
 ```
 
-## Requisitos Previos
+## Requisitos previos
 
 - Docker Desktop
-- Python 3.11+
-- Node.js 22+
-- pnpm (opcional)
+- Python 3.11 o superior
+- Node.js 22 o superior
+- pnpm 11.x
 
-## 🚀 Cómo Empezar
+## Inicio rápido
 
-### Con Docker (Recomendado)
+### Con Docker (recomendado)
 
 ```bash
-# Levantar todos los servicios
 docker-compose up --build
-
-# Servicios disponibles:
-# - Backend:   http://localhost:8000
-# - Frontend: http://localhost:5173
-# - Redis:    localhost:6379
 ```
 
-### Desarrollo Local
+Servicios disponibles:
+
+- Backend: http://localhost:8000
+- Frontend: http://localhost:5173
+- Redis: localhost:6379
+
+### Desarrollo local
 
 #### Backend
 
@@ -76,19 +71,12 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-> Nota: `backend/requirements.txt` es la fuente de verdad para dependencias del backend.
-> Si vas a ejecutar Celery/workflow tasks localmente, además instalá el paquete CLI
-> desde `cli/src` para que `devflow` esté disponible en el worker.
-
-#### Migración de base de datos
+#### Migraciones
 
 ```bash
 cd backend
 alembic -c alembic.ini upgrade head
 ```
-
-> Alembic es el mecanismo formal de migración. El flujo oficial es
-> `alembic upgrade head`.
 
 #### Frontend
 
@@ -97,6 +85,13 @@ cd frontend
 pnpm install
 pnpm dev
 ```
+
+Scripts disponibles en `frontend/package.json`:
+
+- `pnpm dev` — arranque de desarrollo
+- `pnpm build` — build de producción
+- `pnpm lint` — lint del frontend
+- `pnpm preview` — vista previa del build
 
 #### CLI
 
@@ -108,33 +103,57 @@ pip install -e ./src
 devflow --help
 ```
 
-> Nota: las dependencias del CLI viven en `cli/src/pyproject.toml`.
-
-## Comandos CLI
+## Comandos principales de la CLI
 
 ```bash
+devflow init     # Inicializa un workflow nuevo
+devflow validate # Valida un archivo YAML de workflow
 devflow run      # Ejecuta un workflow
-devflow init     # Inicializa un nuevo workflow
-devflow validate # Valida YAML de workflow
 ```
 
-## API Endpoints
+## Variables de entorno
 
-| Método | Endpoint            | Descripción         |
-| ------ | ------------------- | ------------------- |
-| GET    | `/`                 | Health check        |
-| GET    | `/health`           | Estado del servicio |
-| GET    | `/api/v1/workflows` | Listar workflows    |
-| POST   | `/api/v1/workflows` | Crear workflow      |
+| Variable | Descripción | Valor típico |
+| --- | --- | --- |
+| `REDIS_URL` | Conexión a Redis para backend y workers | `redis://localhost:6379/0` |
+| `VITE_API_URL` | URL base del backend para el frontend | `http://localhost:8000` |
+| `VITE_WS_URL` | URL de WebSocket para actualizaciones en vivo | `ws://localhost:8000` |
 
-## Tecnologías que vas a aprender
+> El stack Docker ya define estas variables en `docker-compose.yml`.
 
-- ✅ React Context API (WorkflowContext, ThemeContext)
-- ✅ Integración con WebSockets para actualizaciones en vivo
-- ✅ Recharts para timeline y gráficos de ejecución
-- ✅ Python Click para framework CLI
-- ✅ FastAPI para API REST
-- ✅ Docker y Docker Compose para containers
+## API y tiempo real
+
+Endpoints relevantes:
+
+| Método | Endpoint | Descripción |
+| --- | --- | --- |
+| GET | `/` | Health check |
+| GET | `/health` | Estado del servicio |
+| GET | `/api/v1/workflows` | Listar workflows |
+| POST | `/api/v1/workflows` | Crear workflow |
+
+El backend también expone WebSockets para reflejar el estado de ejecución en el dashboard en tiempo real.
+
+## Flujo recomendado de uso
+
+1. Definí el workflow en YAML.
+2. Validalo con la CLI.
+3. Ejecutalo desde la CLI o el backend.
+4. Seguile el progreso desde el dashboard.
+5. Revisá logs, resultados y errores desde la UI o la API.
+
+## Tecnologías principales
+
+- Python 3.11+
+- FastAPI
+- SQLAlchemy
+- Redis
+- Celery
+- React
+- Vite
+- Recharts
+- SCSS
+- Docker
 
 ## Licencia
 
